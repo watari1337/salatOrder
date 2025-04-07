@@ -4,6 +4,9 @@ interface
 
 uses System.SysUtils;
 
+const
+    MaxIngredientOfSalat = 12;
+
 type
 //индекс, имя, кол во в граммах, БЖУ на 100г, индекс ингредиента на который можно заменить
     TIngredient = Record
@@ -26,7 +29,7 @@ type
       index: integer;
       Name: String[255];
       numOfIngredients: integer;
-      ingredients: array[0..12] of TPairIndexIngredient;
+      ingredients: array[0..MaxIngredientOfSalat] of TPairIndexIngredient;
       cost: integer;
     End;
 
@@ -52,16 +55,21 @@ type
       inf: TSalat;
       adr: PSalat;
     End;
+    ArrIngr = array of PIngredient;
+    ArrSalat = array of PSalat;
+    //ArrOrder = array of POrder;
 
 var
     HeadIngredient: PIngredient;
     HeadSalat: PSalat;
-    HeadOrder: POrder; 
+    HeadOrder: POrder;
     ReadOnlyOne: boolean = true; //если false тогда данные загруженны
+    MaxIngredient, MaxSalat: integer;
 
 procedure ReadFile();
 procedure CreateFile();
-
+procedure WriteFile();
+procedure ClearAllList();
 
 
 implementation
@@ -72,12 +80,12 @@ const
     AdresIngredientFile: string = 'Data\Ingredients.dat';
     AdresSalatFile: string = 'Data\Salat.dat';
 
-
-procedure ReadFile();
 var
     IngredientFile: File of TIngredient;
     SalatFile: File of TSalat;
 
+procedure ReadFile();
+var
     nowI, predI: PIngredient;
     nowS, predS: PSalat;
     ingredientIn: TIngredient;
@@ -90,11 +98,9 @@ begin
     try
       AssignFile(IngredientFile, AdresIngredientFile);
       ReSet(IngredientFile);
-      //создание пустой головы
-      New(HeadIngredient);
-      HeadIngredient^.adr:= nil;
 
       predI:= HeadIngredient;
+      MaxIngredient:= 0;
       while (not EOF(IngredientFile)) do begin
         Read(IngredientFile, ingredientIn);
         new(nowI);    //выделение памяти для новой переменной
@@ -102,6 +108,7 @@ begin
         predI:= nowI;
         nowI^.inf:= ingredientIn;
         nowI^.adr:= nil;
+        if (nowI^.inf.Index > MaxIngredient) then MaxIngredient:= nowI^.inf.Index;
       end;
       CloseFile(IngredientFile);
     except
@@ -112,11 +119,9 @@ begin
     try
       AssignFile(SalatFile, AdresSalatFile);
       ReSet(SalatFile);
-      //создание пустой головы
-      New(HeadSalat);
-      HeadSalat^.adr:= nil;
 
       predS:= HeadSalat;
+      MaxSalat:= 0;
       while (not EOF(SalatFile)) do begin
         Read(SalatFile, SalatIn);
         new(nowS);    //выделение памяти для новой переменной
@@ -124,6 +129,7 @@ begin
         predS:= nowS;
         nowS^.inf:= SalatIn;
         nowS^.adr:= nil;
+        if (nowS^.inf.index > MaxSalat) then MaxSalat:= nowS^.inf.index;
       end;
       CloseFile(SalatFile);
     except
@@ -134,28 +140,56 @@ begin
 
   end
   else ShowMessage('Файлы уже были считаны!');
-  New(HeadOrder); //инициализируем список банкета
   MainMenu();
 end;
 
-procedure WriteFile();
-begin
-  if not DirectoryExists('Data\') then
-    CreateDir('Data\');
 
+
+procedure WriteFile();
+var
+  tempI: PIngredient;
+  tempS: PSalat;
+begin
+  try
+    //ingredients
+    ReWrite(IngredientFile, AdresIngredientFile);
+    tempI:= HeadIngredient;
+    while (tempI^.adr <> nil) do begin
+      tempI:= tempI^.adr;
+      write(IngredientFile, tempI^.inf);
+    end;
+    Close(IngredientFile);
+
+    //salat
+    ReWrite(SalatFile, AdresSalatFile);
+    tempS:= HeadSalat;
+    while (tempS^.adr <> nil) do begin
+      tempS:= tempS^.adr;
+      write(SalatFile, tempS^.inf);
+    end;
+    Close(SalatFile);
+    ShowMessage('данные были сохранены');
+  except
+    ShowMessage('Ошибка записи данных');
+  end;
 end;
+
+
 
 procedure CreateFile();
 const
-    name: array[1..30] of string = ('Цезарь', 'Греческий', 'Оливье', 'Капрезе',
-    'Винегрет', 'Кобб', 'Мимоза', 'Нисуаз', 'Табуле', 'Шопский', 'Коул слоу',
-    'Сельдь под шубой', 'Вальдорф', 'Русский', 'Крабовый', 'Фатуш', 'Панцанелла',
-    'Руккола с креветками', 'Теплый салат с курицей', 'Салат с тунцом',
-    'Морковь по-корейски', 'Салат с авокадо', 'Салат с моцареллой',
-    'Салат с кальмарами', 'Салат с рукколой и пармезаном', 'Салат с куриной печенью',
-    'Салат с брынзой', 'Салат с ананасом', 'Салат с грибами', 'Салат с яйцом и ветчиной');
+    amountSalat = 10;
+    amountIng = 44;
 
-    ingredients: array[0..43] of string = ('помидоры', 'огурцы', 'куриная грудка',
+    name: array[1..30] of string = ('цезарь', 'греческий', 'оливье', 'капрезе',
+    'винегрет', 'кобб', 'мимоза', 'нисуаз', 'табуле', 'шопский', 'коул слоу',
+    'сельдь под шубой', 'вальдорф', 'русский', 'крабовый', 'фатуш', 'панцанелла',
+    'руккола с креветками', 'теплый салат с курицей', 'салат с тунцом',
+    'морковь по-корейски', 'салат с авокадо', 'салат с моцареллой',
+    'салат с кальмарами', 'салат с рукколой и пармезаном', 'салат с куриной печенью',
+    'салат с брынзой', 'салат с ананасом', 'салат с грибами', 'салат с яйцом и ветчиной');
+
+    ingredients: array[1..amountIng] of string = ('помидоры', 'огурцы', 'куриная грудка',
     'сыр', 'листья салата', 'оливки', 'авокадо', 'морковь', 'капуста',
     'ветчина', 'яйца', 'креветки', 'греческий йогурт', 'чеснок', 'лук',
     'перец болгарский', 'грибы', 'анчоусы', 'руккола', 'моцарелла', 'брынза',
@@ -164,21 +198,17 @@ const
     'редис', 'базилик', 'петрушка', 'укроп', 'кинза', 'оливковое масло',
     'лимонный сок', 'майонез', 'горчица', 'сухарики', 'пармезан', 'кедровые орешки');
 
-    amountSalat: integer = 30;
-    amountIng: integer = 43;
+    numbers: array[0..43] of integer = (7, 42, 19, 33, 12, 28, 3, 39,
+    15, 26, 44, 8, 21, 36, 1, 30, 17, 41, 10, 24, 5, 37, 14, 29, 2, 43, 18,
+    32, 9, 25, 40, 4, 22, 35, 11, 27, 16, 38, 6, 31, 20, 13, 34, 23);
 
 var
     tempingredients: Tingredient;
     tempSalat: TSalat;
     pair: TPairIndexIngredient;
-    amounIngredients: integer;
-    IngredientFile: File of TIngredient;
-    SalatFile: File of TSalat;
+    amounIngredients, value, k: integer;
 begin
   try
-    if not DirectoryExists('Data\') then
-    CreateDir('Data\');
-    
     randomize;
     //indredients
     AssignFile(IngredientFile, AdresIngredientFile);
@@ -190,12 +220,16 @@ begin
       tempingredients.proteins:= Random(30);
       tempingredients.Fats:= Random(20);
       tempingredients.carbohydrates:= Random(40);
-      tempingredients.change:= Random(amountIng+1); //если 0 то нет замены
+      repeat
+        value:= Random(amountIng+1); //если 0 то нет замены
+      until value <> tempingredients.index;//заменитель не может быть самим ингредиентом
+      if (value mod 8 = 0) then value:= 0; //шанс что нет заменителя 1 к 8
+      tempingredients.change:= value;
 
       Write(IngredientFile, tempingredients);
     end;
     CloseFile(IngredientFile);
-    
+
     //salat
     AssignFile(SalatFile, AdresSalatFile);
     ReWrite(SalatFile);
@@ -206,9 +240,11 @@ begin
 
       amounIngredients:= Random(5)+3; //от 3 до  7
       tempSalat.numOfIngredients:= amounIngredients;
+      k:= Random(44);
       for var j:= 1 to amounIngredients do begin
-        pair.Index:= Random(amountIng)+1;
-        pair.Grams:= Random(31)+10; //от 10 до 40
+        k:= (k+1) mod 44;
+        pair.Index:= numbers[k];
+        pair.Grams:= Random(31)+10; //от 10 до 50
         tempSalat.ingredients[j-1]:= pair;
       end;
 
@@ -219,7 +255,36 @@ begin
   except
     showMessage('error create File');
   end;
-  
+end;
+
+procedure ClearAllList();
+var
+  tempI: PIngredient;
+  tempS: PSalat;
+  tempO: POrder;
+begin
+  if (ReadOnlyOne = false) then begin
+    while (HeadSalat^.adr <> nil) do begin
+      tempS:= HeadSalat;
+      dispose(tempS);
+      HeadSalat:= HeadSalat^.adr;
+    end;
+    dispose(HeadSalat);
+
+    while (HeadIngredient^.adr <> nil) do begin
+      tempI:= HeadIngredient;
+      dispose(tempI);
+      HeadIngredient:= HeadIngredient^.adr;
+    end;
+    dispose(HeadIngredient);
+
+    while (HeadOrder^.adr <> nil) do begin
+      tempO:= HeadOrder;
+      dispose(tempO);
+      HeadOrder:= HeadOrder^.adr;
+    end;
+    dispose(HeadOrder);
+  end;
 end;
 
 end.

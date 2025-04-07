@@ -3,6 +3,7 @@
 interface
 
 function ReadInt(min, max: integer): integer;
+procedure ReadRusStr(var str: string);
 
 implementation
 
@@ -59,7 +60,8 @@ begin
       writeln('принимается только ввод чисел, повторите ввод');
     end;
   end;
-  result:= num
+  result:= num;
+  readln;   //съедаем строчку перехода после ввода чисел
 end;
 
 procedure LowerRus(var s1: String);
@@ -72,6 +74,23 @@ begin
     if (s1[i] >= 'А') and (s1[i] <= 'Я') then
       s1[i] := Chr(Ord(s1[i])+32)
   end;
+end;
+
+procedure ReadRusStr(var str: string);
+var
+  stop: boolean;
+begin
+  repeat
+    stop:= true;
+    readln(str);
+    str:= trim(str);
+    if (str = '') then begin
+      writeln('строка не должна быть пустой!');
+      stop:= false;
+    end;
+  until (stop);
+  if (rusLetters.contains(str[1])) then LowerRus(str)
+  else str:= LowerCase(str);
 end;
 
 function NumOfWords(str: string): integer;

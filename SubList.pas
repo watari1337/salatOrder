@@ -195,18 +195,18 @@ begin
       else begin
         i:= 0;
         writeln('Было найдено несколько вариантов, выберите нужный:');
-        writeln('    код   салат           ингредиент   грам');
+        writeln('    код   цена   салат           ингредиент   грам');
         while (i < Length(Salats)) and (Salats[i] <> nil) do begin
           tempS:= Salats[i];
-          Write(Format('%2d. %4-d  %20-s ',
-          [i, tempS^.inf.index, tempS^.inf.Name
+          Write(Format('%2d. %4-d  %6-d %20-s ',
+          [i, tempS^.inf.index, tempS^.inf.cost, tempS^.inf.Name
           ]));
           for var k := 1 to tempS^.inf.numOfIngredients do begin
             write(Format('%4d  %4d',
             [tempS^.inf.ingredients[k-1].Index, tempS^.inf.ingredients[k-1].Grams]));
             writeln;
             if (k <> tempS^.inf.numOfIngredients) then  //в последний раз сдвиг не нужен
-            write('                               ');   //красивое форматировние в столбец
+            write('                                      ');   //красивое форматировние в столбец
           end;
           inc(i);
         end;
@@ -375,11 +375,8 @@ begin
   end;
 end;
 
-procedure editSalat();
+procedure chooseSalat(var tempS, delS: PSalat; var valueInput: integer);
 var
-  valueInput, valueInput2: integer;
-  strIn: string;
-  tempS, delS: PSalat;
   stop: boolean;
 begin
   repeat
@@ -391,6 +388,16 @@ begin
       if (valueInput = 1) then stop:= false;
     end;
   until stop;
+end;
+
+procedure editSalat();
+var
+  valueInput, valueInput2: integer;
+  strIn: string;
+  tempS, delS: PSalat;
+  stop: boolean;
+begin
+  chooseSalat(tempS, delS, valueInput);
 
   if (tempS <> nil) and (delS <> nil) then begin
     repeat
@@ -404,21 +411,21 @@ begin
         Writeln('5. Удалить ингредиент из рецепта');
         //Writeln('6. Изменить ингредиент в рецепте');
         writeln;
-        writeln('код   салат           ингредиент   грам   номер ингредиента в рецепте');
-        Write(Format('%4-d  %20-s ',[index, Name]));
+        writeln('код   цена   салат           ингредиент   грам   номер ингредиента в рецепте');
+        Write(Format('%4-d  %6-d %20-s ',[index, Cost, Name]));
         for var k := 1 to numOfIngredients do begin
           write(Format('%4d  %4d        %8-d',
           [ingredients[k-1].Index, ingredients[k-1].Grams, (k-1) ]));
           writeln;
           if (k <> numOfIngredients) then  //в последний раз сдвиг не нужен
-          write('                           ');   //красивое форматировние в столбец
+          write('                                  ');   //красивое форматировние в столбец
         end;
 
         valueInput:= BasicFunction.ReadInt(0, 5);
 
         case valueInput of
           0: MainMenu;
-          1: FindSalat(tempS, delS);
+          1: chooseSalat(tempS, delS, valueInput);
           2:
           begin
             writeln('Введите название салата: ');
@@ -499,11 +506,88 @@ begin
   end;
 end;
 
+procedure chooseSalatO(var tempS, delS: PSalat; var valueInput: integer; var tempO: POrder);
+var
+  stop: boolean;
+begin
+  repeat
+    tempO:= nil;
+    stop:= true;
+    FindSalat(tempS, delS);
+    if (delS <> nil) then tempO:= PointOrder(delS^.inf.index);
+    if (tempS = nil) or (delS = nil) or (tempO = nil) then begin
+      if (tempO = nil) then writeln('Этого салата нет в заказах');
+      Writeln('Хотите изменить другой салат? 0 - нет; 1 - да');
+      valueInput:= BasicFunction.ReadInt(0, 1);
+      if (valueInput = 1) then stop:= false;
+    end;
+
+  until stop;
+end;
+
 procedure editOrder();
 var
   tempS, delS: PSalat;
+  tempO: POrder;
+  valueInput, myIndex: integer;
+  stop: boolean;
+  strOut: string;
 begin
-  FindSalat(tempS, delS);
+  chooseSalatO(tempS, delS, valueInput, tempO);
+
+  if (tempS <> nil) and (delS <> nil) and (tempO <> nil) then begin
+    repeat
+      with delS^.inf do begin
+        //tempO:= PointOrder(index);
+        ClearScreen;
+        Writeln('0. Выйти в меню');
+        Writeln('1. Выбранный другой салат для редактирования');
+        Writeln('2. Изменить салат в заказе');
+        Writeln('3. Изменить количество заказанного салата');
+        writeln;
+        writeln('код салата   название            кол-во салатов     возможность приготовить');
+
+        if (tempO^.CadDo) then strOut:= 'приготовим'
+        else strOut:= 'не приготовим';
+        Writeln(Format('     %4-d    %20-s       %12-d   %20-s', [
+        tempO^.Index, Name, tempO^.amount, strOut
+        ]));
+
+        valueInput:= BasicFunction.ReadInt(0, 5);
+
+        case valueInput of
+          0: MainMenu;
+          1: chooseSalatO(tempS, delS, valueInput, tempO);
+          2:
+          begin
+            if (NumOfSalat() > NumOfOrder()) then begin
+              writeln('Введите индекс салата: ' );
+              repeat
+                stop:= true;
+                myIndex:= ReadInt(0, 9999); //а если введённого элемеента нету?
+                if (PointSalat(myIndex) = nil) then begin
+                  writeln('не найден код салата, повторите ввод');
+                  stop:= false;
+                end;
+                if (PointOrderPre(myIndex) <> nil) then begin
+                  writeln('данный салат уже добавлен, повторите ввод');
+                  stop:= false;
+                end;
+
+              until stop;
+              tempO^.Index:= myIndex;
+            end
+            else Writeln('невозможно добавить, уже заказаны все салаты');
+          end;
+          3:
+          begin
+            writeln('Введите количество порций этого салата: ');
+            tempO^.amount:= ReadInt(1, 999);
+          end;
+        end;
+      end;
+    until valueInput = 0;
+  end;
 end;
 
 end.

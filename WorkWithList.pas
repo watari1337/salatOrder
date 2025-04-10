@@ -9,11 +9,14 @@ function PointIngr(index: integer): PIngredient;
 function PointIngrPre(index: integer): PIngredient;
 function PointNameIngr(name: string): ArrIngr;
 
+function NumOfSalat(): integer;
 function PointSalat(index: integer): PSalat;
 function PointSalatPre(index: integer): PSalat;
 function PointNameSalat(name: string): ArrSalat;
 function FindIngrInSalat(tempI: PIngredient): arrSalat;
 
+function NumOfOrder(): integer;
+function PointOrder(codeSalat: integer): POrder;
 function PointOrderPre(codeSalat: integer): POrder;
 
 
@@ -90,6 +93,19 @@ begin
     end;
   end;
   if (result[0] = nil) then result:= nil;
+end;
+
+//считает число различных ингредиентов
+function NumOfSalat(): integer;
+var
+  tempS: PSalat;
+begin
+  result:= 0;
+  tempS:= HeadSalat;
+  while (tempS^.adr <> nil) do begin
+    tempS:= tempS^.adr;
+    inc(result);
+  end;
 end;
 
 //находит указатель на салат по индексу, nil если нет элемента
@@ -174,7 +190,38 @@ begin
   if (result[0] = nil) then result:= nil;
 end;
 
-{возвращает указатель на салат, передаётся код салата, nil если нет элементов}
+//считает число различных ингредиентов
+function NumOfOrder(): integer;
+var
+  tempO: POrder;
+begin
+  result:= 0;
+  tempO:= HeadOrder;
+  while (tempO^.adr <> nil) do begin
+    tempO:= tempO^.adr;
+    inc(result);
+  end;
+end;
+
+{возвращает указатель на салат в заказе, передаётся код салата, nil если нет элементов}
+function PointOrder(codeSalat: integer): POrder;
+var
+  tempO: POrder;
+  stop: boolean;
+begin
+  result:= nil;
+  tempO:= HeadOrder;
+  stop:= false;
+  while (tempO^.adr <> nil) and (stop = false) do begin
+    tempO:= tempO^.adr;
+    if (tempO^.Index = codeSalat) then begin
+      result:= tempO;
+      stop:= true;
+    end;
+  end;
+end;
+
+{возвращает указатель на салат в заказе перед нужным, передаётся код салата, nil если нет элементов}
 function PointOrderPre(codeSalat: integer): POrder;
 var
   tempO, preO: POrder;
@@ -189,65 +236,6 @@ begin
     if (tempO^.Index = codeSalat) then begin
       result:= preO;
       stop:= true;
-    end;
-  end;
-end;
-
-function canCook(indexS, amount: integer): boolean;
-var
-  salat: PSalat;
-  ingr, changeIng: PIngredient;
-begin
-  result:= true;
-
-  salat:= PointSalat(indexS);
-  //в рецептах 1 салата точно не повторяются ингредиенты
-  with Salat^.inf do begin
-    for var i:= 1 to numOfIngredients do begin
-
-      ingr:= PointIngr(ingredients[i].Index);
-      if ((ingredients[i].Grams * amount) > ingr.inf.Grams) then begin
-        if (ingr.inf.change <> 0) then begin  //есть заменитель
-          changeIng:= PointIngr(ingr.inf.change);
-          if ((ingredients[i].Grams * amount) > (changeIng.inf.Grams + ingr.inf.Grams)) then begin
-            result:= false;
-          end;
-        end
-        else result:= false; //заменителя нет
-      end;
-
-    end;
-  end;
-end;
-
-{по индексу салата и количеству салата удаляет из склада ингредиенты
-затраченные на приготовление, допускаем что точно достаточно ингредиентов}
-procedure subIngr(indexS, amount: integer);
-var
-  salat: PSalat;
-  ingr, changeIngr: PIngredient;
-  changeGram: integer;
-begin
-  salat:= PointSalat(indexS);
-  //в рецептах 1 салата точно не повторяются ингредиенты
-  with Salat^.inf do begin
-    for var i:= 1 to numOfIngredients do begin
-
-      ingr:= PointIngr(ingredients[i].Index);
-      if ((ingredients[i].Grams * amount) > ingr.inf.Grams) then begin
-        //не хватает основного ингредиента
-        changeGram:= (ingredients[i].Grams * amount) - ingr.inf.Grams;
-        //заменителя точно хватает по условию
-        changeIngr:= PointIngr(ingr.inf.change);
-        dec(changeIngr.inf.Grams, changeGram);
-
-        ShowMessage(Format('В салате %s ингредиент %s был заменён на %s, в количестве %d грамм',
-        [salat.inf.Name, ingr.inf.Name, changeIngr.inf.Name, changeGram]));
-      end
-      else begin
-        //хватает основного ингредиента
-        dec(ingr.inf.Grams, ingredients[i].Grams * amount);
-      end;
     end;
   end;
 end;

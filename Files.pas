@@ -216,7 +216,7 @@ begin
     for var i:= 1 to amountIng do begin
       tempingredients.Index:= i;
       tempingredients.Name:= ingredients[i];
-      tempingredients.Grams:= Random(4001)+1000; //количество в грамах на складе
+      tempingredients.Grams:= Random(801)+200; //количество в грамах на складе
       tempingredients.proteins:= Random(30);
       tempingredients.Fats:= Random(20);
       tempingredients.carbohydrates:= Random(40);

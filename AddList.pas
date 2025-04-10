@@ -111,26 +111,34 @@ var
     str: string;
     stop: boolean;
 begin
-  new(tempO);
+  if (NumOfSalat() > NumOfOrder()) then begin
+    new(tempO);
 
-  writeln('Введите индекс салата: ' );
-  repeat
-    stop:= true;
-    tempO^.Index:= ReadInt(0, 9999); //а если введённого элемеента нету?
-    if (PointSalat(tempO^.Index) = nil) then begin
-      writeln('не найден код салата, повторите ввод');
-      stop:= false;
-    end;
-    if (PointOrderPre(tempO^.Index) <> nil) then begin
-      writeln('данный салат уже добавлен, повторите ввод');
-      stop:= false;
-    end;
+    writeln('Введите индекс салата: ' );
+    repeat
+      stop:= true;
+      tempO^.Index:= ReadInt(0, 9999); //а если введённого элемеента нету?
+      if (PointSalat(tempO^.Index) = nil) then begin
+        writeln('не найден код салата, повторите ввод');
+        stop:= false;
+      end;
+      if (PointOrderPre(tempO^.Index) <> nil) then begin
+        writeln('данный салат уже добавлен, повторите ввод');
+        stop:= false;
+      end;
 
-  until stop;
+    until stop;
 
-  writeln('Введите количество порций этого салата: ');
-  tempO^.amount:= ReadInt(1, 999);
-  tempO^.CadDo:= false;
+    writeln('Введите количество порций этого салата: ');
+    tempO^.amount:= ReadInt(1, 999);
+    tempO^.CadDo:= false;
+
+    tempO^.adr:= headOrder^.adr;
+    HeadOrder^.adr:= tempO;
+  end
+  else Writeln('невозможно добавить, уже заказаны все салаты');
+
+
   {tempO^.CadDo:= canCook(tempO^.Index, tempO^.amount);
   if (tempO^.CadDo = true) then begin
     write('салат может быть приготовлен');
@@ -138,8 +146,7 @@ begin
   end
   else write('салат НЕ может быть приготовлен');}
 
-  tempO^.adr:= headOrder^.adr;
-  HeadOrder^.adr:= tempO;
+
 end;
 
 end.

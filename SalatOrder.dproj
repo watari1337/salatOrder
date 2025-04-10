@@ -97,6 +97,7 @@
         <DCCReference Include="PrintList.pas"/>
         <DCCReference Include="AddList.pas"/>
         <DCCReference Include="SubList.pas"/>
+        <DCCReference Include="Special.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

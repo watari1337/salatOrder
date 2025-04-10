@@ -12,7 +12,8 @@ uses
   WorkWithList in 'WorkWithList.pas',
   PrintList in 'PrintList.pas',
   AddList in 'AddList.pas',
-  SubList in 'SubList.pas';
+  SubList in 'SubList.pas',
+  Special in 'Special.pas';
 
 var
     valueInput: integer;

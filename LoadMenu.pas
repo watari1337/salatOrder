@@ -7,7 +7,8 @@ procedure ClearScreen;
 
 implementation
 
-uses SysUtils, Files, BasicFunction, Windows, PrintList, AddList, SubList;
+uses SysUtils, Files, BasicFunction, Windows, PrintList, AddList, SubList,
+     Special;
 
 procedure ClearScreen;
 var
@@ -136,7 +137,6 @@ begin
   ClearScreen;
 
   case valueInput of
-    0: MainMenu;
     1:
     begin
       repeat
@@ -144,7 +144,6 @@ begin
         Writeln('Хотите удалить ещё 1 элемент? 0 - нет; 1 - да');
         valueInput:= BasicFunction.ReadInt(0, 1);
       until valueInput = 0;
-      MainMenu;
     end;
     2:
     begin
@@ -153,7 +152,6 @@ begin
         Writeln('Хотите удалить ещё 1 элемент? 0 - нет; 1 - да');
         valueInput:= BasicFunction.ReadInt(0, 1);
       until valueInput = 0;
-      MainMenu;
     end;
     3:
     begin
@@ -162,9 +160,9 @@ begin
         Writeln('Хотите удалить ещё 1 элемент? 0 - нет; 1 - да');
         valueInput:= BasicFunction.ReadInt(0, 1);
       until valueInput = 0;
-      MainMenu;
     end;
   end;
+  MainMenu;
 end;
 
 procedure editList;
@@ -202,7 +200,7 @@ begin
   writeln('5.  Добавление данных в список');
   writeln('6.  Удаление данных из списка');
   writeln('7.  Редактирование данных');
-  writeln('8.  Специальные функции задания.');
+  writeln('8.  Проверить возможность приготовления заказа.');
   writeln('9.  Выход из программы без сохранения изменений');
   writeln('10. Выход с сохранением изменений');
   writeln('11. Дебаг!!!!!!');
@@ -221,7 +219,7 @@ begin
     5: AddToList;
     6: subList;
     7: editList;
-    8:;
+    8: chekAndInfo;
     9:
     begin
       ClearAllList;//обычный выход, очищение списков

@@ -2,8 +2,21 @@
 
 interface
 
+type
+  TPair = record
+    ElemCompare: Variant;
+    PElement: Pointer;
+  end;
+  TSortPairArr = array of TPair;
+  TComparator = function (element1, element2: Variant): integer;
+
 function ReadInt(min, max: integer): integer;
 procedure ReadRusStr(var str: string);
+procedure LowerRus(var s1: String);
+
+function compare1More2(element1, element2: Variant): integer;
+function compare1Less2(element1, element2: Variant): integer;
+procedure QuickSort(var arr: TSortPairArr; compare: TComparator);
 
 implementation
 
@@ -44,6 +57,50 @@ begin
    end;
 end;
 
+function compare1More2(element1, element2: Variant): integer;
+begin
+  if (element1 = element2) then result:= 0
+  else if (element1 > element2) then result:= 1
+  else result:= -1;
+end;
+
+function compare1Less2(element1, element2: Variant): integer;
+begin
+  if (element1 = element2) then result:= 0
+  else if (element1 < element2) then result:= 1
+  else result:= -1;
+end;
+
+procedure QuickSort(var arr: TSortPairArr; compare: TComparator);
+
+Procedure MyQuickSort(L,R: Integer);
+var
+  I, J: Integer;
+  X: Variant;
+  temp: TPair;
+begin
+  I:=L;
+  J:=R;
+  X:=arr[(L+R) div 2].ElemCompare;
+  Repeat
+    While (compare(arr[I].ElemCompare, X) < 0) do Inc(I); //<
+    While (compare(arr[J].ElemCompare, X) > 0)do Dec(J);  //>
+    If (I <= J) then begin
+      temp:= arr[I];
+      arr[I]:= arr[J];
+      arr[J]:= temp;
+      Inc(I);
+      Dec(J);
+    end
+  until I > J;
+  If J > L then MyQuickSort(L,J);
+  If I < R then MyQuickSort(I,R);
+end;
+
+begin
+  MyQuickSort(Low(arr), High(arr));
+end;
+
 function ReadInt(min, max: integer): integer;
 var
     num: integer;
@@ -56,8 +113,10 @@ begin
         writeln('число должно быть больше ', min, ' и меньше ', max, ', повторите ввод');
       end;
     except
-      num:= min-1;
-      writeln('принимается только ввод чисел, повторите ввод');
+      on EInOutError do begin
+        num:= min-1;
+        writeln('принимается только ввод чисел, повторите ввод');
+      end;
     end;
   end;
   result:= num;
@@ -73,6 +132,18 @@ begin
   begin
     if (s1[i] >= 'А') and (s1[i] <= 'Я') then
       s1[i] := Chr(Ord(s1[i])+32)
+  end;
+end;
+
+procedure BiggerRus(var s1: String);
+var
+  len, i: Integer;
+begin
+  len := Length(s1);
+  for i := 1 to len do
+  begin
+    if (s1[i] >= 'а') and (s1[i] <= 'я') then
+      s1[i] := Chr(Ord(s1[i])-32)
   end;
 end;
 

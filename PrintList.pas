@@ -18,10 +18,10 @@ begin
   if (tempI^.adr = nil) then Writeln('список ингредиентов пустой')
   else begin
     writeln;
-    writeln('код   ингредиент           код заменителя   грам   Б/Ж/У');
+    writeln('код   ингредиент           код заменителя   грамм   Б/Ж/У');
     While (tempI^.adr <> nil) do begin
       tempI:= tempI^.adr;
-      Writeln(Format('%4-d  %20-s %14d %6d  %3d/%2d/%2d', [
+      Writeln(Format('%4-d  %20-s %14d %6d   %3d/%2d/%2d', [
       tempI^.inf.Index, tempI^.inf.Name, tempI^.inf.change, tempI^.inf.Grams,
       tempI^.inf.proteins, tempI^.inf.Fats, tempI^.inf.carbohydrates
       ]));
@@ -37,7 +37,7 @@ begin
   if (tempS^.adr = nil) then Writeln('список салатов пустой')
   else begin
     writeln;
-    writeln('код   цена   салат           ингредиент   грам');
+    writeln('код   цена   салат           ингредиент   грамм');
     While (tempS^.adr <> nil) do begin
       tempS:= tempS^.adr;
       Write(Format('%4-d  %6-d %20-s ', [

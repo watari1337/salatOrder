@@ -13,7 +13,8 @@ uses
   PrintList in 'PrintList.pas',
   AddList in 'AddList.pas',
   SubList in 'SubList.pas',
-  Special in 'Special.pas';
+  Special in 'Special.pas',
+  SortAndFind in 'SortAndFind.pas';
 
 var
     valueInput: integer;

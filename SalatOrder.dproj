@@ -98,6 +98,7 @@
         <DCCReference Include="AddList.pas"/>
         <DCCReference Include="SubList.pas"/>
         <DCCReference Include="Special.pas"/>
+        <DCCReference Include="SortAndFind.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

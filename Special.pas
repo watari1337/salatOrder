@@ -1,4 +1,4 @@
-unit Special;
+﻿unit Special;
 
 interface
 
@@ -21,16 +21,18 @@ type
 
 var
   salat: PSalat;
-  ingr, changeIngr, notEnough: PIngredient;
+  ingr, changeIngr: PIngredient;
   enough, changers: boolean;
-  i, weightNow, notEnoughGram: integer;
+  i, weightNow, indexEnt: integer;
   procent, proteins, fats, carbohydrates: double;
   Neads: array of TPair;
+  notEnough: array of TPair;
 
 begin
   enough:= true;
   changers:= false;
   proteins:= 0;
+  indexEnt:= 0;
   fats:= 0;
   carbohydrates:= 0;
 
@@ -38,11 +40,12 @@ begin
   //в рецептах 1-го салата точно не повторяются ингредиенты
   with Salat^.inf do begin
     SetLength(Neads, numOfIngredients*2);
+    SetLength(notEnough, numOfIngredients);
     {записываем ингредиент и сколько использовали, затем заменитель этого
     ингредиента и сколько использовали, если хватает в моменте то отнимаем из
     базы данных ингредиента}
     i:= 0;
-    While (i < numOfIngredients) and (enough) do begin
+    While (i < numOfIngredients) {and (enough)} do begin
       ingr:= PointIngr(ingredients[i].Index);
       weightNow:= ingredients[i].Grams * amount;
       if (weightNow > ingr.inf.Grams) then begin
@@ -50,8 +53,9 @@ begin
           changeIngr:= PointIngr(ingr.inf.change);
           if ((ingredients[i].Grams * amount) > (changeIngr.inf.Grams + ingr.inf.Grams)) then begin
             enough:= false;
-            notEnough:= ingr;
-            notEnoughGram:= weightNow;
+            notEnough[indexEnt].point:= ingr;
+            notEnough[indexEnt].Grams:= weightNow;
+            inc(indexEnt);
           end
           else begin
             changers:= true;
@@ -75,12 +79,18 @@ begin
             carbohydrates:= carbohydrates + ingr^.inf.carbohydrates * procent;
           end;
         end
-        else enough:= false; //заменителя нет
+        else begin    //заменителя нет
+          enough:= false;
+          notEnough[indexEnt].point:= ingr;
+          notEnough[indexEnt].Grams:= weightNow;
+          inc(indexEnt);
+        end;
       end
       else begin
         Neads[i*2].point:= ingr;
         Neads[i*2].Grams:= weightNow;
         dec(ingr^.inf.Grams, weightNow);
+
         procent:= ingredients[i].Grams / (100);
         proteins:= proteins + ingr^.inf.proteins * procent;
         fats:= fats + ingr^.inf.fats * procent;
@@ -91,8 +101,11 @@ begin
       end;
       inc(i);
     end;
+
+    writeln;
     Writeln('Салат ', salat.inf.Name);
-    if (enough) then begin
+    if (enough) then begin  //enought ingredients to cook
+      writeln('Этот салат мы можем приготовить!'); {Ингредиенты для его приготовления вычтены из склада.}
       inc(myCost, cost*amount);
       //хватило, выводим заменители
       if (changers) then begin
@@ -113,16 +126,24 @@ begin
       writeln(Format('БЖУ для данного салата на 100г %.0f/%.0f/%.0f',
       [proteins, fats, carbohydrates]));
     end
-    else begin
-      Writeln(Format('Нельзя приготовить этот салат, нехваатет ингредиента "%s" в количество %d грамм.',
-      [notEnough^.inf.Name, notEnoughGram]));
+    else begin //cant cook not enought ingr
+      for var k:= indexEnt-1 downto 0 do begin
+        Writeln(Format('Нельзя приготовить этот салат, нехватает ингредиента "%s", его должно быть %d грамм.',
+        [notEnough[k].point^.inf.Name, notEnough[k].Grams]));
+      end;
       //не хватило, возращаем то что отнимали
-      dec(i, 2);
+      {dec(i, 2);
       for var j := i downto 0 do begin
         ingr:= Neads[j*2].point;
         changeIngr:= Neads[j*2+1].point;
         inc(ingr^.inf.Grams, Neads[j*2].Grams);
-        inc(changeIngr^.inf.Grams, Neads[j*2+1].Grams);
+        if (changeIngr <> nil) then inc(changeIngr^.inf.Grams, Neads[j*2+1].Grams);
+      end;}
+      for i:= 0 to numOfIngredients-1 do begin
+        ingr:= Neads[i*2].point;
+        changeIngr:= Neads[i*2+1].point;
+        if (ingr <> nil) then inc(ingr^.inf.Grams, Neads[i*2].Grams);
+        if (changeIngr <> nil) then inc(changeIngr^.inf.Grams, Neads[i*2+1].Grams);
       end;
     end;
     result:= enough;
@@ -132,16 +153,39 @@ end;
 procedure chekAndInfo();
 var
   tempO: POrder;
-  cost: integer;
+  cost, index: integer;
+  arrIngr: Array of integer;
+  tempI: PIngredient;
 begin
   ClearScreen;
+  //remember all ingredients in base
+  index:= 0;
+  setLength(arrIngr, 20);
+  tempI:= HeadIngredient^.adr;
+  while (tempI <> nil) do begin
+    if (index >= length(arrIngr)) then setLength(arrIngr, length(arrIngr)*2);
+    arrIngr[index]:= tempI^.inf.Grams;
+    inc(index);
+    tempI:= tempI^.adr;
+  end;
+  setLength(arrIngr, index);
 
   cost:= 0;
   tempO:= HeadOrder;
   while (tempO^.adr <> nil) do begin
     tempO:= tempO^.adr;
+    //if (tempO.CadDo = false) then
     tempO.CadDo:= canCook(tempO.Index, tempO.amount, cost);
   end;
+  //return ingr grams
+  tempI:= HeadIngredient^.adr;
+  index:= 0;
+  while (tempI <> nil) do begin
+    tempI^.inf.Grams:= arrIngr[index];
+    inc(index);
+    tempI:= tempI^.adr;
+  end;
+
   Writeln;
   Writeln('Цена за салаты которые возможно приготовить: ', cost);
 

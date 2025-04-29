@@ -22,11 +22,17 @@ var
 begin
   //создание пустой головы
   New(HeadIngredient);
+  New(TempListI);
   HeadIngredient^.adr:= nil;
+  TempListI^.adr:= nil;
   New(HeadSalat);
+  New(TempListS);
   HeadSalat^.adr:= nil;
+  TempListS^.adr:= nil;
   New(HeadOrder); //инициализируем список банкета
+  New(TempListO);
   HeadOrder^.adr:= nil;
+  TempListO^.adr:= nil;
 
   if not DirectoryExists('Data\') then CreateDir('Data\');
 

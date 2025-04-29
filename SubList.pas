@@ -358,7 +358,7 @@ begin
           4:
           begin
             writeln('Введите количество ингредиена на складе в граммах: ');
-            Grams:= ReadInt(0, 9999);
+            Grams:= ReadInt(0, 999999);
           end;
           5:
           begin

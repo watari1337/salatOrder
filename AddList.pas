@@ -34,7 +34,7 @@ begin
     until (PointIngr(change) <> nil) or (change = 0);
 
     writeln('Введите количество ингредиена на складе в граммах: ');
-    Grams:= ReadInt(0, 9999);
+    Grams:= ReadInt(0, 999999);
     writeln('Количество белков в этом продукте на 100г');
     proteins:= ReadInt(0, 100);
     writeln('Количество жиров в этом продукте на 100г');

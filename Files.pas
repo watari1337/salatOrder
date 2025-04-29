@@ -58,11 +58,12 @@ type
     ArrIngr = array of PIngredient;
     ArrSalat = array of PSalat;
     //ArrOrder = array of POrder;
+    ArrPoint = array of Pointer;
 
 var
-    HeadIngredient: PIngredient;
-    HeadSalat: PSalat;
-    HeadOrder: POrder;
+    HeadIngredient, TempListI: PIngredient;
+    HeadSalat, TempListS: PSalat;
+    HeadOrder, TempListO: POrder;
     ReadOnlyOne: boolean = true; //если false тогда данные загруженны
     MaxIngredient, MaxSalat: integer;
 
@@ -285,6 +286,9 @@ begin
     end;
     dispose(HeadOrder);
   end;
+  dispose(TempListI);
+  dispose(TempListS);
+  dispose(TempListO);
 end;
 
 end.

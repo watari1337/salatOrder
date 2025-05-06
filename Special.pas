@@ -8,11 +8,13 @@ implementation
 
 uses Files, WorkWithList, System.SysUtils, LoadMenu;
 
+var
+  textFileOut: textFile;
 
 //проверяет возможность прикотовить салат по рецепту indexS и в количестве amount
 //из ингредеиентов со склада
 //true, елси можно приготовить
-function canCook(const indexS, amount: integer; var myCost: integer): boolean;
+function canCook(const indexS, amount: integer; var myCost: integer; var strOut: string): boolean;
 type
   TPair = Record
     point: PIngredient;
@@ -104,8 +106,11 @@ begin
 
     writeln;
     Writeln('Салат ', salat.inf.Name);
+    writeln(textFileOut);
+    Writeln(textFileOut, 'Салат ', salat.inf.Name);
     if (enough) then begin  //enought ingredients to cook
       writeln('Этот салат мы можем приготовить!'); {Ингредиенты для его приготовления вычтены из склада.}
+      writeln(textFileOut, 'Этот салат мы можем приготовить!');
       inc(myCost, cost*amount);
       //хватило, выводим заменители
       if (changers) then begin
@@ -116,6 +121,8 @@ begin
           if (changeIngr <> nil) then begin
             writeln(Format('ингредиент %s был заменён на %s, в количестве %d грамм',
             [ingr.inf.Name, changeIngr.inf.Name, changeIngr.inf.Grams]));
+            writeln(textFileOut, Format('ингредиент %s был заменён на %s, в количестве %d грамм',
+            [ingr.inf.Name, changeIngr.inf.Name, changeIngr.inf.Grams]));
           end;
         end;
       end;
@@ -125,10 +132,14 @@ begin
       carbohydrates:= Round(carbohydrates);
       writeln(Format('БЖУ для данного салата на 100г %.0f/%.0f/%.0f',
       [proteins, fats, carbohydrates]));
+      writeln(textFileOut, Format('БЖУ для данного салата на 100г %.0f/%.0f/%.0f',
+      [proteins, fats, carbohydrates]));
     end
     else begin //cant cook not enought ingr
       for var k:= indexEnt-1 downto 0 do begin
-        Writeln(Format('Нельзя приготовить этот салат, нехватает ингредиента "%s", его должно быть %d грамм.',
+        Writeln(Format('Нельзя приготовить этот салат, не хватает ингредиента "%s", его должно быть %d грамм.',
+        [notEnough[k].point^.inf.Name, notEnough[k].Grams]));
+        Writeln(textFileOut, Format('Нельзя приготовить этот салат, не хватает ингредиента "%s", его должно быть %d грамм.',
         [notEnough[k].point^.inf.Name, notEnough[k].Grams]));
       end;
       //не хватило, возращаем то что отнимали
@@ -150,48 +161,80 @@ begin
   end;
 end;
 
+{procedure printOutStr(str: string);
+begin
+  for var i:= 1 to length(str) do begin
+    if (str[i] = '%') then writeln
+    else write(str[i]);
+  end;
+end;}
+
 procedure chekAndInfo();
+const
+  adrText = 'Data\Bell.txt';
 var
   tempO: POrder;
   cost, index: integer;
   arrIngr: Array of integer;
   tempI: PIngredient;
+  strOut: string;
 begin
-  ClearScreen;
-  //remember all ingredients in base
-  index:= 0;
-  setLength(arrIngr, 20);
-  tempI:= HeadIngredient^.adr;
-  while (tempI <> nil) do begin
-    if (index >= length(arrIngr)) then setLength(arrIngr, length(arrIngr)*2);
-    arrIngr[index]:= tempI^.inf.Grams;
-    inc(index);
-    tempI:= tempI^.adr;
-  end;
-  setLength(arrIngr, index);
+  try
+    ClearScreen;
 
-  cost:= 0;
-  tempO:= HeadOrder;
-  while (tempO^.adr <> nil) do begin
-    tempO:= tempO^.adr;
-    //if (tempO.CadDo = false) then
-    tempO.CadDo:= canCook(tempO.Index, tempO.amount, cost);
-  end;
-  //return ingr grams
-  tempI:= HeadIngredient^.adr;
-  index:= 0;
-  while (tempI <> nil) do begin
-    tempI^.inf.Grams:= arrIngr[index];
-    inc(index);
-    tempI:= tempI^.adr;
+    //open TextFile
+    assignFile(textFileOut, adrText);
+    ReWrite(textFileOut);
+
+    //remember all ingredients in base
+    index:= 0;
+    setLength(arrIngr, 20);
+    tempI:= HeadIngredient^.adr;
+    while (tempI <> nil) do begin
+      if (index >= length(arrIngr)) then setLength(arrIngr, length(arrIngr)*2);
+      arrIngr[index]:= tempI^.inf.Grams;
+      inc(index);
+      tempI:= tempI^.adr;
+    end;
+    setLength(arrIngr, index);
+
+    cost:= 0;
+    tempO:= HeadOrder;
+    while (tempO^.adr <> nil) do begin
+      tempO:= tempO^.adr;
+      //if (tempO.CadDo = false) then
+      tempO.CadDo:= canCook(tempO.Index, tempO.amount, cost, strOut);
+    end;
+
+    //return ingr grams
+    tempI:= HeadIngredient^.adr;
+    index:= 0;
+    while (tempI <> nil) do begin
+      tempI^.inf.Grams:= arrIngr[index];
+      inc(index);
+      tempI:= tempI^.adr;
+    end;
+
+    Writeln;
+    Writeln('Цена за салаты которые возможно приготовить: ', cost);
+    Writeln(textFileOut);
+    Writeln(textFileOut, 'Цена за салаты которые возможно приготовить: ', cost);
+    {strOut:= strOut + '%' + 'Цена за салаты которые возможно приготовить: ' + intTostr(cost);
+    printOutStr(str);}
+
+    readln;
+  finally
+    //close
+    CloseFile(textFileOut);
   end;
 
-  Writeln;
-  Writeln('Цена за салаты которые возможно приготовить: ', cost);
-
-  readln;
-  MainMenu;
 end;
+
+
+{procedure makeFileSpecial(str: string);
+begin
+
+end;}
 
 {по индексу салата и количеству салата удаляет из склада ингредиенты
 затраченные на приготовление, допускаем что точно достаточно ингредиентов

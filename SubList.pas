@@ -549,8 +549,11 @@ begin
 
         if (tempO^.CadDo) then strOut:= 'приготовим'
         else strOut:= 'не приготовим';
-        Writeln(Format('     %4-d    %20-s       %12-d   %20-s', [
+        {Writeln(Format('     %4-d    %20-s       %12-d   %20-s', [
         tempO^.Index, Name, tempO^.amount, strOut
+        ])); }
+        Writeln(Format('     %4-d    %20-s       %12-d   %20-s', [
+        tempO^.Index, PointSalat(tempO^.Index)^.inf.Name, tempO^.amount, strOut
         ]));
 
         valueInput:= BasicFunction.ReadInt(0, 5);

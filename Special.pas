@@ -14,7 +14,7 @@ var
 //проверяет возможность прикотовить салат по рецепту indexS и в количестве amount
 //из ингредеиентов со склада
 //true, елси можно приготовить
-function canCook(const indexS, amount: integer; var myCost: integer; var strOut: string): boolean;
+function canCook(const indexS, amount: integer; var myCost: integer): boolean;
 type
   TPair = Record
     point: PIngredient;
@@ -177,7 +177,6 @@ var
   cost, index: integer;
   arrIngr: Array of integer;
   tempI: PIngredient;
-  strOut: string;
 begin
   try
     ClearScreen;
@@ -203,7 +202,7 @@ begin
     while (tempO^.adr <> nil) do begin
       tempO:= tempO^.adr;
       //if (tempO.CadDo = false) then
-      tempO.CadDo:= canCook(tempO.Index, tempO.amount, cost, strOut);
+      tempO.CadDo:= canCook(tempO.Index, tempO.amount, cost);
     end;
 
     //return ingr grams

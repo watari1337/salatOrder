@@ -46,6 +46,7 @@ end;
 procedure LookList();
 begin
   case chooseList of
+    0: exit;
     1: printIngredients;
     2: printSalat;
     3: printOrder;
@@ -216,9 +217,9 @@ begin
       writeln('0. Вернуться в меню');
       writeln('1. Фильтровать заказы по возможности приготовления');
       writeln('2. Фильтровать заказы по количеству салатов');
-      writeln('3. Фильтровать заказы по ингредиентам в заказанных салатах');
-      writeln('4. фильтровать заказы по цене');
-      typeElement:= BasicFunction.ReadInt(0, 4);
+      //writeln('3. Фильтровать заказы по ингредиентам в заказанных салатах');
+      //writeln('4. фильтровать заказы по цене');
+      typeElement:= BasicFunction.ReadInt(0, 2);
     end;
   end;
   if (typeElement = 0) then exit;

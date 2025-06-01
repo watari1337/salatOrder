@@ -186,7 +186,7 @@ begin
 
   if (typeCompare = 0) then exit;
 
-  SortListQ(typeList, typeElement, typeCompare);
+  SortListQ(typeList, typeElement, typeCompare+2);
   readln;
 end;
 

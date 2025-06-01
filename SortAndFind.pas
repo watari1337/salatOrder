@@ -53,118 +53,6 @@ begin
   setLength(result, index);
 end;
 
-procedure SortListQ(typeList, typeElement, typeCompare: integer);
-var
-  tempI: PIngredient;
-  tempS: PSalat;
-  tempO: POrder;
-  sortArr: TSortPairArr;
-  tempElement: TPair;
-  index: integer;
-begin
-  setLength(sortArr, 20);
-  index:= 0;
-  //создаём массив 1 элемент сортировки 2 pointer
-  case typeList of
-    1:
-    begin
-      tempI:= HeadIngredient^.adr;
-      while (tempI <> nil) do begin
-        tempElement.PElement:= tempI;
-        case typeElement of
-          1: tempElement.ElemCompare:= tempI^.inf.Index;
-          2: tempElement.ElemCompare:= tempI^.inf.Name;
-          3: tempElement.ElemCompare:= tempI^.inf.Grams;
-          4: tempElement.ElemCompare:= tempI^.inf.proteins;
-          5: tempElement.ElemCompare:= tempI^.inf.Fats;
-          6: tempElement.ElemCompare:= tempI^.inf.carbohydrates;
-        end;
-        if (index >= length(sortArr)) then setLength(sortArr, length(sortArr)*2);
-        sortArr[index]:= tempElement;
-        inc(index);
-        tempI:= tempI^.adr;
-      end;
-    end;
-    2:
-    begin
-      tempS:= HeadSalat^.adr;
-      while (tempS <> nil) do begin
-        tempElement.PElement:= tempS;
-        case typeElement of
-          1: tempElement.ElemCompare:= tempS^.inf.Index;
-          2: tempElement.ElemCompare:= tempS^.inf.Name;
-          3: tempElement.ElemCompare:= tempS^.inf.cost;
-          4: tempElement.ElemCompare:= tempS^.inf.numOfIngredients;
-        end;
-        if (index >= length(sortArr)) then setLength(sortArr, length(sortArr)*2);
-        sortArr[index]:= tempElement;
-        inc(index);
-        tempS:= tempS^.adr;
-      end;
-    end;
-    3:
-    begin
-      tempO:= HeadOrder^.adr;
-      while (tempO <> nil) do begin
-        tempElement.PElement:= tempO;
-        case typeElement of
-          1: tempElement.ElemCompare:= PointSalat(tempO^.Index)^.inf.Name;
-          2: tempElement.ElemCompare:= tempO^.amount;
-          3: tempElement.ElemCompare:= tempO^.CadDo;
-        end;
-        if (index >= length(sortArr)) then setLength(sortArr, length(sortArr)*2);
-        sortArr[index]:= tempElement;
-        inc(index);
-        tempO:= tempO^.adr;
-      end;
-    end;
-  end;
-  //обрезаем не нужную часть массива
-  setLength(sortArr, index);
-  //получаем отсортированный массив
-  if (index = 0) then writeln('Список пустой!')
-  else begin
-    if (typeCompare = 1) then QuickSort(sortArr, compare1More2)
-    else QuickSort(sortArr, compare1Less2);
-    writeln('список отсортирован!');
-  end;
-
-  //return result of sort to list
-  index:= 0;
-  case typeList of
-    1:
-    begin
-      tempI:= HeadIngredient;
-      while (index < length(sortArr)) do begin
-        tempI^.adr:= PIngredient(sortArr[index].PElement);
-        inc(index);
-        tempI:= tempI^.adr;
-      end;
-      tempI^.adr:= nil;
-    end;
-    2:
-    begin
-      tempS:= HeadSalat;
-      while (index < length(sortArr)) do begin
-        tempS^.adr:= PSalat(sortArr[index].PElement);
-        inc(index);
-        tempS:= tempS^.adr;
-      end;
-      tempS^.adr:= nil;
-    end;
-    3:
-    begin
-      tempO:= HeadOrder;
-      while (index < length(sortArr)) do begin
-        tempO^.adr:= POrder(sortArr[index].PElement);
-        inc(index);
-        tempO:= tempO^.adr;
-      end;
-      tempO^.adr:= nil;
-    end;
-  end;
-end;
-
 //typeCompare 1-= 2-not= 3-> 4-<
 function FindCompare(element1, element2: variant; typeCompare: integer): boolean;
 begin
@@ -173,6 +61,161 @@ begin
     2: result:= (element1 <> element2);
     3: result:= (element1 > element2);
     4: result:= (element1 < element2);
+  end;
+end;
+
+procedure SortListQ(typeList, typeElement, typeCompare: integer);
+
+var
+  tempI: PIngredient;
+  tempS: PSalat;
+  tempO: POrder;
+  element: Pointer;
+
+procedure assign(element, value: Pointer);
+var
+  tempI: PIngredient;
+  tempS: PSalat;
+  tempO: POrder;
+begin
+  tempI:= element;
+  tempS:= element;
+  tempO:= element;
+  case typeList of
+    1: tempI^.adr:= value;
+    2: tempS^.adr:= value;
+    3: tempO^.adr:= value;
+  end;
+end;
+
+function Next(element: Pointer): Pointer;
+var
+  tempI: PIngredient;
+  tempS: PSalat;
+  tempO: POrder;
+begin
+  tempI:= element;
+  tempS:= element;
+  tempO:= element;
+  case typeList of
+    1: result:= tempI^.adr;
+    2: result:= tempS^.adr;
+    3: result:= tempO^.adr;
+  end;
+end;
+
+function Take(element: Pointer): variant;
+var
+  tempI: PIngredient;
+  tempS: PSalat;
+  tempO: POrder;
+begin
+  tempI:= element;
+  tempS:= element;
+  tempO:= element;
+  case typeList of
+    1:
+    case typeElement of
+      1: result:= tempI^.inf.Index;
+      2: result:= tempI^.inf.Name;
+      3: result:= tempI^.inf.Grams;
+      4: result:= tempI^.inf.proteins;
+      5: result:= tempI^.inf.Fats;
+      6: result:= tempI^.inf.carbohydrates;
+    end;
+    2:
+    case typeElement of
+      1: result:= tempS^.inf.Index;
+      2: result:= tempS^.inf.Name;
+      3: result:= tempS^.inf.cost;
+      4: result:= tempS^.inf.numOfIngredients;
+    end;
+    3:
+    case typeElement of
+      1: result:= PointSalat(tempO^.Index)^.inf.Name;
+      2: result:= tempO^.amount;
+      3: result:= tempO^.CadDo;
+    end;
+  end;
+end;
+
+// Сливает два отсортированных подсписка в один отсортированный список
+function SortedMerge(Left, Right: Pointer): Pointer;
+begin
+  // Базовые случаи рекурсии
+  if Left = nil then result:= Right
+  else if Right = nil then result:= Left
+  else begin
+    if FindCompare(Take(Right), Take(Left), typeCompare) then begin
+      result:= Left;
+      assign(result, SortedMerge(Next(Left), Right));
+    end
+    else begin
+      result:= Right;
+      assign(result, SortedMerge(Left, Next(Right)));
+    end;
+  end;
+end;
+
+// Разбивает список на две половины
+Procedure Split(head: pointer; var first, second: pointer);
+begin
+  //базовые случаи: 0 или 1 элемент
+  if (head = nil) or (Next(head) = nil) then begin
+    first:= head;
+    second:= nil;
+  end
+  else begin
+    first:= head;
+    second:= Next(head);
+
+    while second <> nil do begin
+      second := Next(second);
+      if second <> nil then begin
+        first := Next(first);
+        second := Next(second);
+      end;
+    end;
+
+    second:= Next(first);
+    assign(first, nil);
+    first:= head;
+  end;
+end;
+
+procedure MergeSort(var AHead: Pointer);
+var
+  Head: pointer;
+  Left, Right: Pointer;
+begin
+  Head := AHead;
+
+  //базовый случай
+  if (Head = nil) or (Next(Head) = nil) then Exit;
+
+  Split(Head, Left, Right);
+
+  //рекурсивно сортируем каждую половину
+  MergeSort(Left);
+  MergeSort(Right);
+
+  AHead := SortedMerge(Left, Right);
+end;
+
+begin
+  case typeList of
+    1: element:= HeadIngredient;
+    2: element:= HeadSalat;
+    3: element:= HeadOrder;
+  end;
+  if (Next(element) = nil) then writeln('список пустой!')
+  else begin
+    case typeList of
+      1: MergeSort(Pointer(HeadIngredient^.adr));
+      2: MergeSort(Pointer(HeadSalat^.adr));
+      3: MergeSort(Pointer(HeadOrder^.adr));
+    end;
+    writeln('список отсортирован! ');
   end;
 end;
 
